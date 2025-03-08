@@ -1323,3 +1323,94 @@ body {
     height: 18px;
   }
 }
+
+/* Updated Abilities Section Styles */
+.abilities-section {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+}
+
+.abilities-section h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.abilities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.ability-card {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.ability-card:hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.ability-card.hidden-ability {
+  background-color: rgba(255, 153, 0, 0.15);
+  border: 1px solid rgba(255, 153, 0, 0.3);
+}
+
+.ability-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ability-header h4 {
+  margin: 0;
+  text-transform: capitalize;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.hidden-badge {
+  background-color: #ff9900;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.ability-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .abilities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ability-card {
+    padding: 12px;
+  }
+
+  .ability-header h4 {
+    font-size: 1rem;
+  }
+
+  .hidden-badge {
+    font-size: 0.75rem;
+    padding: 3px 6px;
+  }
+
+  .ability-description {
+    font-size: 0.85rem;
+  }
+}

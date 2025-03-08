@@ -67,6 +67,7 @@ interface PokemonDetails extends Pokemon {
   abilities: {
     ability: {
       name: string;
+      url: string;
     };
     is_hidden: boolean;
   }[];
@@ -80,6 +81,18 @@ interface PokemonDetails extends Pokemon {
     name: string;
     url: string;
   }[];
+}
+
+interface AbilityDetail {
+  name: string;
+  effect_entries: {
+    effect: string;
+    language: {
+      name: string;
+    };
+    short_effect: string;
+  }[];
+  is_hidden: boolean;
 }
 
 interface PokemonSpecies {
@@ -136,6 +149,19 @@ interface TypeEffectiveness {
     noEffect: string[];
   };
 }
+
+const generations: Generation[] = [
+  { name: "All Gens", start: 1, end: 1010 },
+  { name: "Gen 1", start: 1, end: 151 },
+  { name: "Gen 2", start: 152, end: 251 },
+  { name: "Gen 3", start: 252, end: 386 },
+  { name: "Gen 4", start: 387, end: 493 },
+  { name: "Gen 5", start: 494, end: 649 },
+  { name: "Gen 6", start: 650, end: 721 },
+  { name: "Gen 7", start: 722, end: 809 },
+  { name: "Gen 8", start: 810, end: 905 },
+  { name: "Gen 9", start: 906, end: 1010 },
+];
 
 const typeEffectiveness: TypeEffectiveness = {
   normal: {
@@ -230,19 +256,6 @@ const typeEffectiveness: TypeEffectiveness = {
   }
 };
 
-const generations: Generation[] = [
-  { name: "All Gens", start: 1, end: 1010 },
-  { name: "Gen 1", start: 1, end: 151 },
-  { name: "Gen 2", start: 152, end: 251 },
-  { name: "Gen 3", start: 252, end: 386 },
-  { name: "Gen 4", start: 387, end: 493 },
-  { name: "Gen 5", start: 494, end: 649 },
-  { name: "Gen 6", start: 650, end: 721 },
-  { name: "Gen 7", start: 722, end: 809 },
-  { name: "Gen 8", start: 810, end: 905 },
-  { name: "Gen 9", start: 906, end: 1010 },
-];
-
 function App() {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -260,6 +273,7 @@ function App() {
   const [selectedVersion, setSelectedVersion] = useState('');
   const [pokemonForms, setPokemonForms] = useState<PokemonForm[]>([]);
   const [selectedForm, setSelectedForm] = useState<string>('default');
+  const [abilityDetails, setAbilityDetails] = useState<{ [key: string]: AbilityDetail }>({});
 
   const pokemonTypes = [
     'all', 'normal', 'fire', 'water', 'electric', 'grass', 'ice',
@@ -403,6 +417,23 @@ function App() {
     }
   };
 
+  const fetchAbilityDetails = async (url: string, isHidden: boolean): Promise<AbilityDetail | null> => {
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      const englishEffect = data.effect_entries.find((entry: any) => entry.language.name === 'en');
+      
+      return {
+        name: data.name,
+        effect_entries: data.effect_entries,
+        is_hidden: isHidden
+      };
+    } catch (error) {
+      console.error('Error fetching ability details:', error);
+      return null;
+    }
+  };
+
   const fetchPokemonDetails = async (id: number): Promise<PokemonDetails | null> => {
     try {
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
@@ -426,6 +457,21 @@ function App() {
 
       // Always fetch forms for the Pokemon
       await fetchPokemonForms(pokemonData.forms);
+
+      // Fetch ability details
+      const abilityPromises = pokemonData.abilities.map(ability => 
+        fetchAbilityDetails(ability.ability.url, ability.is_hidden)
+      );
+      const abilityResults = await Promise.all(abilityPromises);
+      const abilityDetailsMap: { [key: string]: AbilityDetail } = {};
+      
+      abilityResults.forEach((ability, index) => {
+        if (ability) {
+          abilityDetailsMap[pokemonData.abilities[index].ability.name] = ability;
+        }
+      });
+      
+      setAbilityDetails(abilityDetailsMap);
 
       const moveDetailsPromises = pokemonData.moves.map(move => 
         fetchMoveDetails(move.move.url)
@@ -805,14 +851,31 @@ function App() {
                       ))}
                     </div>
 
-                    <div className="abilities">
+                    <div className="abilities-section">
                       <h3>Abilities</h3>
-                      <div className="abilities-list">
-                        {selectedPokemon.abilities.map((ability, index) => (
-                          <span key={index} className={ability.is_hidden ? 'hidden-ability' : ''}>
-                            {ability.ability.name}
-                          </span>
-                        ))}
+                      <div className="abilities-grid">
+                        {selectedPokemon.abilities.map((abilityData, index) => {
+                          const ability = abilityDetails[abilityData.ability.name];
+                          if (!ability) return null;
+                          
+                          const englishEffect = ability.effect_entries.find(entry => entry.language.name === 'en');
+                          
+                          return (
+                            <div key={index} className={`ability-card ${abilityData.is_hidden ? 'hidden-ability' : ''}`}>
+                              <div className="ability-header">
+                                <h4>{abilityData.ability.name.replace('-', ' ')}</h4>
+                                {abilityData.is_hidden && (
+                                  <span className="hidden-badge">Hidden Ability</span>
+                                )}
+                              </div>
+                              {englishEffect && (
+                                <p className="ability-description">
+                                  {englishEffect.short_effect}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
