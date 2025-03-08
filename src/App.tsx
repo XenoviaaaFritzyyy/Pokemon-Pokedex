@@ -421,7 +421,6 @@ function App() {
     try {
       const response = await fetch(url);
       const data = await response.json();
-      const englishEffect = data.effect_entries.find((entry: any) => entry.language.name === 'en');
       
       return {
         name: data.name,
