@@ -1,168 +1,15 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-
-interface Pokemon {
-  name: string;
-  id: number;
-  sprites: {
-    front_default: string;
-    front_shiny: string;
-    other?: {
-      home?: {
-        front_default: string;
-        front_shiny: string;
-      };
-    };
-  };
-  types: {
-    type: {
-      name: string;
-    };
-  }[];
-  moves: {
-    move: {
-      name: string;
-      url: string;
-    };
-    version_group_details: {
-      level_learned_at: number;
-      move_learn_method: {
-        name: string;
-      };
-      version_group: {
-        name: string;
-      };
-    }[];
-  }[];
-  forms: {
-    name: string;
-    url: string;
-  }[];
-}
-
-interface Generation {
-  name: string;
-  start: number;
-  end: number;
-}
-
-interface PokemonForm {
-  name: string;
-  sprites: {
-    front_default: string;
-    front_shiny: string;
-  };
-  types: {
-    type: {
-      name: string;
-    };
-  }[];
-  form_name: string;
-}
-
-interface PokemonDetails extends Pokemon {
-  species: {
-    url: string;
-  };
-  height: number;
-  weight: number;
-  abilities: {
-    ability: {
-      name: string;
-      url: string;
-    };
-    is_hidden: boolean;
-  }[];
-  stats: {
-    base_stat: number;
-    stat: {
-      name: string;
-    };
-  }[];
-  forms: {
-    name: string;
-    url: string;
-  }[];
-}
-
-interface AbilityDetail {
-  name: string;
-  effect_entries: {
-    effect: string;
-    language: {
-      name: string;
-    };
-    short_effect: string;
-  }[];
-  is_hidden: boolean;
-}
-
-interface PokemonSpecies {
-  flavor_text_entries: {
-    flavor_text: string;
-    language: {
-      name: string;
-    };
-    version: {
-      name: string;
-    };
-  }[];
-  evolution_chain: {
-    url: string;
-  };
-}
-
-interface MoveDetail {
-  name: string;
-  type: {
-    name: string;
-  };
-  power: number | null;
-  accuracy: number | null;
-}
-
-interface Evolution {
-  id: number;
-  name: string;
-  sprite: string;
-  evolution_details?: {
-    min_level?: number;
-    item?: string;
-    trigger?: string;
-    trade?: boolean;
-    held_item?: string;
-    min_happiness?: number;
-    time_of_day?: string;
-    location?: string;
-    known_move?: string;
-  };
-}
-
-interface EvolutionChain {
-  base: Evolution;
-  second_stage: Evolution[];
-  final_stage: Evolution[];
-}
+import Navbar from './components/Navbar'
+import PokemonGrid from './components/PokemonGrid'
+import PokemonDetail from './components/PokemonDetail'
+import { Pokemon, Generation, PokemonDetails, PokemonSpecies, EvolutionChain, PokemonForm, AbilityDetail, MoveDetail, TCGCard } from './types'
 
 interface TypeEffectiveness {
   [key: string]: {
     superEffective: string[];
     notVeryEffective: string[];
     noEffect: string[];
-  };
-}
-
-interface TCGCard {
-  id: string;
-  name: string;
-  images: {
-    small: string;
-    large: string;
-  };
-  rarity: string;
-  set: {
-    name: string;
-    series: string;
   };
 }
 
@@ -289,7 +136,7 @@ function App() {
   const [selectedSecondType, setSelectedSecondType] = useState('none');
   const [showWarning, setShowWarning] = useState(false);
   const [moveDetails, setMoveDetails] = useState<{ [key: string]: MoveDetail }>({});
-  const [selectedMoveMethod, setSelectedMoveMethod] = useState('all');
+  // const [selectedMoveMethod, setSelectedMoveMethod] = useState('all');
   const [selectedVersion, setSelectedVersion] = useState('');
   const [pokemonForms, setPokemonForms] = useState<PokemonForm[]>([]);
   const [selectedForm, setSelectedForm] = useState<string>('default');
@@ -639,80 +486,20 @@ function App() {
 
   return (
     <div className="app-container">
-      <nav className="navbar">
-        <div className="nav-content">
-          <div className="nav-left">
-            <div className="nav-title-container">
-              <div className="pokeball-logo"></div>
-              <h1 className="nav-title">PokéDex</h1>
-            </div>
-          </div>
-          <div className="nav-center">
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="Search Pokémon..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              <button 
-                className="sprite-toggle"
-                onClick={() => setIs3D(!is3D)}
-              >
-                {is3D ? 'Show 2D' : 'Show 3D'}
-              </button>
-              <div className="type-filters">
-                <select
-                  value={selectedType}
-                  onChange={(e) => {
-                    setSelectedType(e.target.value);
-                    if (e.target.value === selectedSecondType) {
-                      setSelectedSecondType('none');
-                    }
-                  }}
-                  className={`type-filter ${selectedType}`}
-                >
-                  <option value="all">All Types</option>
-                  {pokemonTypes.filter(type => type !== 'all').map(type => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={selectedSecondType}
-                  onChange={(e) => setSelectedSecondType(e.target.value)}
-                  className={`type-filter ${selectedSecondType}`}
-                  disabled={selectedType === 'all'}
-                >
-                  <option value="none">Secondary Type</option>
-                  {pokemonTypes
-                    .filter(type => type !== 'all' && type !== selectedType)
-                    .map(type => (
-                      <option key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-          <div className="nav-right">
-            <div className="gen-buttons">
-              {generations.map((gen) => (
-                <button
-                  key={gen.name}
-                  className={`gen-button ${selectedGen.name === gen.name ? 'active' : ''}`}
-                  onClick={() => handleGenSelect(gen)}
-                >
-                  {gen.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        is3D={is3D}
+        setIs3D={setIs3D}
+        selectedType={selectedType}
+        setSelectedType={setSelectedType}
+        selectedSecondType={selectedSecondType}
+        setSelectedSecondType={setSelectedSecondType}
+        selectedGen={selectedGen}
+        handleGenSelect={handleGenSelect}
+        pokemonTypes={pokemonTypes}
+        generations={generations}
+      />
 
       {showWarning && (
         <div className="warning-modal">
@@ -745,361 +532,34 @@ function App() {
           <div className="loading">Loading {selectedGen.name} Pokémon...</div>
         ) : (
           <>
-            <div className="pokemon-grid">
-              {filteredPokemon.map((poke) => (
-                <div 
-                  key={poke.id} 
-                  className="pokemon-card"
-                  onClick={() => handlePokemonClick(poke)}
-                >
-                  <img 
-                    src={
-                      is3D 
-                        ? (isShiny 
-                            ? poke.sprites.other?.home?.front_shiny 
-                            : poke.sprites.other?.home?.front_default) 
-                        || (isShiny ? poke.sprites.front_shiny : poke.sprites.front_default)
-                        : (isShiny ? poke.sprites.front_shiny : poke.sprites.front_default)
-                    } 
-                    alt={poke.name} 
-                  />
-                  <h3>#{poke.id.toString().padStart(3, '0')} {poke.name}</h3>
-                  <div className="types">
-                    {poke.types.map((type, index) => (
-                      <span key={index} className={`type ${type.type.name}`}>
-                        {type.type.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PokemonGrid
+              pokemon={filteredPokemon}
+              is3D={is3D}
+              isShiny={isShiny}
+              handlePokemonClick={handlePokemonClick}
+            />
 
             {selectedPokemon && pokemonSpecies && (
-              <div className="pokemon-detail-overlay" onClick={closeDetails}>
-                <div className="pokemon-detail-modal" onClick={e => e.stopPropagation()}>
-                  <button className="close-button" onClick={closeDetails}>&times;</button>
-                  <div className="detail-header">
-                    <div className="sprite-container">
-                      <img 
-                        src={
-                          selectedForm === 'default'
-                            ? (is3D
-                                ? (isShiny 
-                                    ? selectedPokemon.sprites.other?.home?.front_shiny 
-                                    : selectedPokemon.sprites.other?.home?.front_default)
-                                || (isShiny ? selectedPokemon.sprites.front_shiny : selectedPokemon.sprites.front_default)
-                                : (isShiny ? selectedPokemon.sprites.front_shiny : selectedPokemon.sprites.front_default))
-                            : (isShiny 
-                                ? pokemonForms.find(f => f.name === selectedForm)?.sprites.front_shiny 
-                                : pokemonForms.find(f => f.name === selectedForm)?.sprites.front_default)
-                        } 
-                        alt={selectedPokemon.name} 
-                        className="detail-image"
-                      />
-                      <div className="form-controls">
-                        <button 
-                          className="shiny-toggle"
-                          onClick={() => setIsShiny(!isShiny)}
-                        >
-                          {isShiny ? 'Show Normal' : 'Show Shiny'}
-                        </button>
-                      </div>
-                    </div>
-                    <h2>
-                      #{selectedPokemon.id.toString().padStart(3, '0')} {selectedPokemon.name}
-                    </h2>
-                    <div className="types">
-                      {selectedPokemon.types.map((type, index) => (
-                        <span key={index} className={`type ${type.type.name}`}>
-                          {type.type.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="detail-info">
-                    {pokemonSpecies && (
-                      <div className="pokedex-entry-section">
-                        <div className="version-selector">
-                          <select
-                            value={selectedVersion}
-                            onChange={(e) => setSelectedVersion(e.target.value)}
-                            className="version-select"
-                          >
-                            {getUniqueVersions(pokemonSpecies.flavor_text_entries).map((version) => (
-                              <option key={version} value={version}>
-                                {version.split('-').map(word => 
-                                  word.charAt(0).toUpperCase() + word.slice(1)
-                                ).join(' ')}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <p className="pokedex-entry">
-                          {pokemonSpecies.flavor_text_entries
-                            .find(entry => 
-                              entry.version.name === selectedVersion && 
-                              entry.language.name === 'en'
-                            )?.flavor_text.replace(/\f/g, ' ') ||
-                            pokemonSpecies.flavor_text_entries
-                              .find(entry => entry.language.name === 'en')
-                              ?.flavor_text.replace(/\f/g, ' ')}
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="type-effectiveness">
-                      {(() => {
-                        const { weaknesses, resistances, immunities } = calculateTypeWeaknesses(selectedPokemon.types);
-                        return (
-                          <>
-                            {weaknesses.length > 0 && (
-                              <div className="type-category">
-                                <h4>Weak against:</h4>
-                                <div className="type-list">
-                                  {weaknesses.map(type => (
-                                    <span key={type} className={`type ${type}`}>
-                                      {type}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {resistances.length > 0 && (
-                              <div className="type-category">
-                                <h4>Resistant to:</h4>
-                                <div className="type-list">
-                                  {resistances.map(type => (
-                                    <span key={type} className={`type ${type}`}>
-                                      {type}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {immunities.length > 0 && (
-                              <div className="type-category">
-                                <h4>Immune to:</h4>
-                                <div className="type-list">
-                                  {immunities.map(type => (
-                                    <span key={type} className={`type ${type}`}>
-                                      {type}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-
-                    <div className="stats-grid">
-                      <div className="stat-item">
-                        <span>Height</span>
-                        <span>{(selectedPokemon.height / 10).toFixed(1)}m</span>
-                      </div>
-                      <div className="stat-item">
-                        <span>Weight</span>
-                        <span>{(selectedPokemon.weight / 10).toFixed(1)}kg</span>
-                      </div>
-                      {selectedPokemon.stats.map((stat) => (
-                        <div key={stat.stat.name} className="stat-item">
-                          <span>{stat.stat.name}</span>
-                          <span>{stat.base_stat}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="abilities-section">
-                      <h3>Abilities</h3>
-                      <div className="abilities-grid">
-                        {selectedPokemon.abilities.map((abilityData, index) => {
-                          const ability = abilityDetails[abilityData.ability.name];
-                          if (!ability) return null;
-                          
-                          const englishEffect = ability.effect_entries.find(entry => entry.language.name === 'en');
-                          
-                          return (
-                            <div key={index} className={`ability-card ${abilityData.is_hidden ? 'hidden-ability' : ''}`}>
-                              <div className="ability-header">
-                                <h4>{abilityData.ability.name.replace('-', ' ')}</h4>
-                                {abilityData.is_hidden && (
-                                  <span className="hidden-badge">Hidden Ability</span>
-                                )}
-                              </div>
-                              {englishEffect && (
-                                <p className="ability-description">
-                                  {englishEffect.short_effect}
-                                </p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {evolutionChain && (
-                      <div className="evolution-chain">
-                        <h3>Evolution Chain</h3>
-                        <div className="evolution-stages">
-                          <div className="evolution-stage">
-                            <div className="pokemon-evolution" onClick={() => fetchPokemonDetails(evolutionChain.base.id)}>
-                              <img src={evolutionChain.base.sprite} alt={evolutionChain.base.name} />
-                              <span>{evolutionChain.base.name}</span>
-                            </div>
-                          </div>
-                          
-                          {evolutionChain.second_stage.length > 0 && (
-                            <>
-                              <div className="evolution-arrow">→</div>
-                              <div className="evolution-stage">
-                                {evolutionChain.second_stage.map((pokemon, index) => (
-                                  <div key={index} className="pokemon-evolution" onClick={() => fetchPokemonDetails(pokemon.id)}>
-                                    <img src={pokemon.sprite} alt={pokemon.name} />
-                                    <span>{pokemon.name}</span>
-                                    {pokemon.evolution_details && (
-                                      <small>
-                                        {pokemon.evolution_details.min_level && `Level ${pokemon.evolution_details.min_level}`}
-                                        {pokemon.evolution_details.item && `Use ${pokemon.evolution_details.item.replace('-', ' ')}`}
-                                        {pokemon.evolution_details.trade && 'Trade'}
-                                        {pokemon.evolution_details.held_item && `Hold ${pokemon.evolution_details.held_item.replace('-', ' ')}`}
-                                        {pokemon.evolution_details.min_happiness && 'High Friendship'}
-                                        {pokemon.evolution_details.time_of_day && `During ${pokemon.evolution_details.time_of_day}`}
-                                        {pokemon.evolution_details.location && `At ${pokemon.evolution_details.location.replace('-', ' ')}`}
-                                        {pokemon.evolution_details.known_move && `Knows ${pokemon.evolution_details.known_move.replace('-', ' ')}`}
-                                      </small>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                          
-                          {evolutionChain.final_stage.length > 0 && (
-                            <>
-                              <div className="evolution-arrow">→</div>
-                              <div className="evolution-stage">
-                                {evolutionChain.final_stage.map((pokemon, index) => (
-                                  <div key={index} className="pokemon-evolution" onClick={() => fetchPokemonDetails(pokemon.id)}>
-                                    <img src={pokemon.sprite} alt={pokemon.name} />
-                                    <span>{pokemon.name}</span>
-                                    {pokemon.evolution_details && (
-                                      <small>
-                                        {pokemon.evolution_details.min_level && `Level ${pokemon.evolution_details.min_level}`}
-                                        {pokemon.evolution_details.item && `Use ${pokemon.evolution_details.item.replace('-', ' ')}`}
-                                        {pokemon.evolution_details.trade && 'Trade'}
-                                        {pokemon.evolution_details.held_item && `Hold ${pokemon.evolution_details.held_item.replace('-', ' ')}`}
-                                        {pokemon.evolution_details.min_happiness && 'High Friendship'}
-                                        {pokemon.evolution_details.time_of_day && `During ${pokemon.evolution_details.time_of_day}`}
-                                        {pokemon.evolution_details.location && `At ${pokemon.evolution_details.location.replace('-', ' ')}`}
-                                        {pokemon.evolution_details.known_move && `Knows ${pokemon.evolution_details.known_move.replace('-', ' ')}`}
-                                      </small>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="moves-section">
-                      <h3>Moves</h3>
-                      <div className="moves-container">
-                        <div className="moves-filters">
-                          <select 
-                            value={selectedMoveMethod}
-                            onChange={(e) => setSelectedMoveMethod(e.target.value)}
-                          >
-                            <option value="all">All Methods</option>
-                            <option value="level-up">Level Up</option>
-                            <option value="machine">TM/TR</option>
-                            <option value="egg">Egg Move</option>
-                            <option value="tutor">Move Tutor</option>
-                          </select>
-                        </div>
-                        <div className="moves-list">
-                          {selectedPokemon.moves
-                            .filter(move => {
-                              if (selectedMoveMethod === 'all') return true;
-                              return move.version_group_details.some(
-                                detail => detail.move_learn_method.name === selectedMoveMethod
-                              );
-                            })
-                            .sort((a, b) => {
-                              const aLevel = a.version_group_details[0]?.level_learned_at || 0;
-                              const bLevel = b.version_group_details[0]?.level_learned_at || 0;
-                              return aLevel - bLevel;
-                            })
-                            .map((moveData, index) => {
-                              const learnMethod = moveData.version_group_details[0]?.move_learn_method.name;
-                              const levelLearned = moveData.version_group_details[0]?.level_learned_at;
-                              const moveDetail = moveDetails[moveData.move.name];
-                              
-                              return (
-                                <div key={index} className="move-item">
-                                  <div className="move-info">
-                                    <span className={`move-type ${moveDetail?.type.name || ''}`}>
-                                      {moveDetail?.type.name || '???'}
-                                    </span>
-                                    <span className="move-name">
-                                      {moveData.move.name.replace('-', ' ')}
-                                    </span>
-                                  </div>
-                                  <div className="move-stats">
-                                    {moveDetail?.power && (
-                                      <span className="move-power">
-                                        Power: {moveDetail.power}
-                                      </span>
-                                    )}
-                                    {moveDetail?.accuracy && (
-                                      <span className="move-accuracy">
-                                        Acc: {moveDetail.accuracy}%
-                                      </span>
-                                    )}
-                                    <span className="move-method">
-                                      {learnMethod === 'level-up' ? `Lvl ${levelLearned}` : learnMethod}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="tcg-section">
-                      <h3>Trading Card Game Cards</h3>
-                      <div className="tcg-cards-container">
-                        {loadingCards ? (
-                          <div className="loading">Loading TCG cards...</div>
-                        ) : tcgCards.length > 0 ? (
-                          <div className="tcg-cards-grid">
-                            {tcgCards.map((card) => (
-                              <div key={card.id} className="tcg-card">
-                                <img 
-                                  src={card.images.small} 
-                                  alt={card.name}
-                                  onClick={() => window.open(card.images.large, '_blank')}
-                                />
-                                <div className="tcg-card-info">
-                                  <span className="tcg-card-set">{card.set.name}</span>
-                                  <span className="tcg-card-rarity">{card.rarity}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="no-cards">No trading cards found for this Pokémon.</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PokemonDetail
+                pokemon={selectedPokemon}
+                species={pokemonSpecies}
+                evolutionChain={evolutionChain}
+                isShiny={isShiny}
+                is3D={is3D}
+                selectedForm={selectedForm}
+                pokemonForms={pokemonForms}
+                abilityDetails={abilityDetails}
+                moveDetails={moveDetails}
+                tcgCards={tcgCards}
+                loadingCards={loadingCards}
+                selectedVersion={selectedVersion}
+                setSelectedVersion={setSelectedVersion}
+                setIsShiny={setIsShiny}
+                closeDetails={closeDetails}
+                fetchPokemonDetails={fetchPokemonDetails}
+                getUniqueVersions={getUniqueVersions}
+                calculateTypeWeaknesses={calculateTypeWeaknesses}
+              />
             )}
           </>
         )}
