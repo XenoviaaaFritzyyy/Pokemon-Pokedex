@@ -273,6 +273,10 @@ const typeEffectiveness: TypeEffectiveness = {
 };
 
 function App() {
+  useEffect(() => {
+    document.title = 'PokéDex';
+  }, []);
+
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGen, setSelectedGen] = useState<Generation>(generations[1]);
