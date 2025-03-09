@@ -34,6 +34,10 @@ interface Pokemon {
       };
     }[];
   }[];
+  forms: {
+    name: string;
+    url: string;
+  }[];
 }
 
 interface Generation {
@@ -53,8 +57,6 @@ interface PokemonForm {
       name: string;
     };
   }[];
-  is_mega: boolean;
-  is_gmax: boolean;
   form_name: string;
 }
 
@@ -147,6 +149,20 @@ interface TypeEffectiveness {
     superEffective: string[];
     notVeryEffective: string[];
     noEffect: string[];
+  };
+}
+
+interface TCGCard {
+  id: string;
+  name: string;
+  images: {
+    small: string;
+    large: string;
+  };
+  rarity: string;
+  set: {
+    name: string;
+    series: string;
   };
 }
 
@@ -274,6 +290,9 @@ function App() {
   const [pokemonForms, setPokemonForms] = useState<PokemonForm[]>([]);
   const [selectedForm, setSelectedForm] = useState<string>('default');
   const [abilityDetails, setAbilityDetails] = useState<{ [key: string]: AbilityDetail }>({});
+  const [tcgCards, setTcgCards] = useState<TCGCard[]>([]);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [is3D, setIs3D] = useState(false);
 
   const pokemonTypes = [
     'all', 'normal', 'fire', 'water', 'electric', 'grass', 'ice',
@@ -400,8 +419,6 @@ function App() {
         name: form.name,
         sprites: form.sprites,
         types: form.types,
-        is_mega: false,
-        is_gmax: false,
         form_name: form.form_name || form.name.split('-').slice(1).join(' ')
       }));
 
@@ -511,14 +528,11 @@ function App() {
     // Handle second type filtering
     let matchesSecondType = true;
     if (selectedSecondType !== 'none') {
-      // For second type, we need to ensure it's different from the first type
       if (selectedType !== 'all') {
-        // If first type is selected, find a different type that matches second type
         matchesSecondType = poke.types.some(type => 
           type.type.name === selectedSecondType && type.type.name !== selectedType
         );
       } else {
-        // If first type is 'all', just check for second type
         matchesSecondType = poke.types.some(type => type.type.name === selectedSecondType);
       }
     }
@@ -580,15 +594,39 @@ function App() {
     };
   };
 
+  const fetchTCGCards = async (pokemonName: string) => {
+    setLoadingCards(true);
+    try {
+      const response = await fetch(
+        `https://api.pokemontcg.io/v2/cards?q=name:"${pokemonName}"&orderBy=set.releaseDate`,
+        {
+          headers: {
+            'X-Api-Key': '2638c6b7-86e7-4047-9bbd-6aa80cf26304'
+          }
+        }
+      );
+      const data = await response.json();
+      setTcgCards(data.data || []);
+    } catch (error) {
+      console.error('Error fetching TCG cards:', error);
+      setTcgCards([]);
+    } finally {
+      setLoadingCards(false);
+    }
+  };
+
   const handlePokemonClick = async (pokemon: { id: number }) => {
     setSelectedPokemon(null);
     setSelectedVersion('');
     setIsShiny(false);
+    setTcgCards([]); // Reset TCG cards
     
     try {
       const details = await fetchPokemonDetails(pokemon.id);
       if (details) {
         setSelectedPokemon(details);
+        // Fetch TCG cards after pokemon details are loaded
+        await fetchTCGCards(details.name);
       }
     } catch (error) {
       console.error('Error fetching Pokemon details:', error);
@@ -614,12 +652,17 @@ function App() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
               />
+              <button 
+                className="sprite-toggle"
+                onClick={() => setIs3D(!is3D)}
+              >
+                {is3D ? 'Show 2D' : 'Show 3D'}
+              </button>
               <div className="type-filters">
                 <select
                   value={selectedType}
                   onChange={(e) => {
                     setSelectedType(e.target.value);
-                    // Reset second type if it matches the first type
                     if (e.target.value === selectedSecondType) {
                       setSelectedSecondType('none');
                     }
@@ -705,7 +748,17 @@ function App() {
                   className="pokemon-card"
                   onClick={() => handlePokemonClick(poke)}
                 >
-                  <img src={poke.sprites.front_default} alt={poke.name} />
+                  <img 
+                    src={
+                      is3D 
+                        ? (isShiny 
+                            ? poke.sprites.other?.home?.front_shiny 
+                            : poke.sprites.other?.home?.front_default) 
+                        || (isShiny ? poke.sprites.front_shiny : poke.sprites.front_default)
+                        : (isShiny ? poke.sprites.front_shiny : poke.sprites.front_default)
+                    } 
+                    alt={poke.name} 
+                  />
                   <h3>#{poke.id.toString().padStart(3, '0')} {poke.name}</h3>
                   <div className="types">
                     {poke.types.map((type, index) => (
@@ -726,8 +779,13 @@ function App() {
                     <div className="sprite-container">
                       <img 
                         src={
-                          selectedForm === 'default' 
-                            ? (isShiny ? selectedPokemon.sprites.front_shiny : selectedPokemon.sprites.front_default)
+                          selectedForm === 'default'
+                            ? (is3D
+                                ? (isShiny 
+                                    ? selectedPokemon.sprites.other?.home?.front_shiny 
+                                    : selectedPokemon.sprites.other?.home?.front_default)
+                                || (isShiny ? selectedPokemon.sprites.front_shiny : selectedPokemon.sprites.front_default)
+                                : (isShiny ? selectedPokemon.sprites.front_shiny : selectedPokemon.sprites.front_default))
                             : (isShiny 
                                 ? pokemonForms.find(f => f.name === selectedForm)?.sprites.front_shiny 
                                 : pokemonForms.find(f => f.name === selectedForm)?.sprites.front_default)
@@ -1008,6 +1066,33 @@ function App() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="tcg-section">
+                      <h3>Trading Card Game Cards</h3>
+                      <div className="tcg-cards-container">
+                        {loadingCards ? (
+                          <div className="loading">Loading TCG cards...</div>
+                        ) : tcgCards.length > 0 ? (
+                          <div className="tcg-cards-grid">
+                            {tcgCards.map((card) => (
+                              <div key={card.id} className="tcg-card">
+                                <img 
+                                  src={card.images.small} 
+                                  alt={card.name}
+                                  onClick={() => window.open(card.images.large, '_blank')}
+                                />
+                                <div className="tcg-card-info">
+                                  <span className="tcg-card-set">{card.set.name}</span>
+                                  <span className="tcg-card-rarity">{card.rarity}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="no-cards">No trading cards found for this Pokémon.</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1018,7 +1103,7 @@ function App() {
 
       <footer className="footer">
         <div className="footer-content">
-          <p>Data provided by <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a></p>
+          <p>Data provided by <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> and <a href="https://pokemontcg.io/" target="_blank" rel="noopener noreferrer">Pokémon TCG API</a></p>
           <p>© 2024 Pokédex App - All Rights Reserved</p>
         </div>
       </footer>
