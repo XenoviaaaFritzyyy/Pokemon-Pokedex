@@ -69,6 +69,12 @@ body {
   top: 0;
   z-index: 1000;
   padding: 0.5rem;
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.navbar-hidden {
+  transform: translateY(-100%);
 }
 
 .nav-content {
@@ -310,8 +316,9 @@ body {
   border-radius: 10px;
   padding: 30px;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+              0 8px 16px rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
   color: white;
   cursor: pointer;
   display: flex;
@@ -323,7 +330,8 @@ body {
 
 .pokemon-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3),
+              0 12px 24px rgba(255, 255, 255, 0.15);
 }
 
 .pokemon-card img {
@@ -422,11 +430,13 @@ body {
   padding: 5px;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.close-button:hover {
+  opacity: 0.8;
 }
 
 .detail-header {
@@ -1847,4 +1857,99 @@ html {
 /* Add smooth scrolling for better mobile experience */
 * {
   -webkit-overflow-scrolling: touch;
+}
+
+.special-forms-toggle {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background-color: #e91e63;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 120px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.special-forms-toggle:hover {
+  background-color: #c2185b;
+  transform: scale(1.05);
+}
+
+.special-forms-toggle.active {
+  background-color: #ad1457;
+  box-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+}
+
+.special-forms-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Always 4 columns */
+  gap: 30px;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.special-form-card {
+  background-color: #1a1a1a;
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+              0 8px 16px rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.special-form-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3),
+              0 12px 24px rgba(255, 255, 255, 0.15);
+}
+
+.special-form-card img {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+/* Add responsive adjustments */
+@media (max-width: 1200px) {
+  .special-forms-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .special-forms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .special-form-card img {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .special-forms-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .special-form-card img {
+    width: 200px;
+    height: 200px;
+  }
 }

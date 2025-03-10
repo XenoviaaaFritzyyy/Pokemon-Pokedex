@@ -1,4 +1,5 @@
 import { Generation } from '../types';
+import { useScrollDirection } from '../hooks/useScrollDirection';
 
 interface NavbarProps {
   searchTerm: string;
@@ -13,6 +14,8 @@ interface NavbarProps {
   handleGenSelect: (gen: Generation) => void;
   pokemonTypes: string[];
   generations: Generation[];
+  showSpecialForms: boolean;
+  setShowSpecialForms: (show: boolean) => void;
 }
 
 const Navbar = ({
@@ -27,10 +30,14 @@ const Navbar = ({
   selectedGen,
   handleGenSelect,
   pokemonTypes,
-  generations
+  generations,
+  showSpecialForms,
+  setShowSpecialForms,
 }: NavbarProps) => {
+  const scrollDirection = useScrollDirection();
+
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${scrollDirection === 'down' ? 'navbar-hidden' : ''}`}>
       <div className="nav-content">
         <div className="nav-left">
           <div className="nav-title-container">
@@ -52,6 +59,12 @@ const Navbar = ({
               onClick={() => setIs3D(!is3D)}
             >
               {is3D ? 'Show 2D' : 'Show 3D'}
+            </button>
+            <button 
+              className={`special-forms-toggle ${showSpecialForms ? 'active' : ''}`}
+              onClick={() => setShowSpecialForms(!showSpecialForms)}
+            >
+              Special Forms
             </button>
             <div className="type-filters">
               <select
@@ -75,7 +88,6 @@ const Navbar = ({
                 value={selectedSecondType}
                 onChange={(e) => setSelectedSecondType(e.target.value)}
                 className={`type-filter ${selectedSecondType}`}
-                disabled={selectedType === 'all'}
               >
                 <option value="none">Secondary Type</option>
                 {pokemonTypes
@@ -90,17 +102,19 @@ const Navbar = ({
           </div>
         </div>
         <div className="nav-right">
-          <div className="gen-buttons">
-            {generations.map((gen) => (
-              <button
-                key={gen.name}
-                className={`gen-button ${selectedGen.name === gen.name ? 'active' : ''}`}
-                onClick={() => handleGenSelect(gen)}
-              >
-                {gen.name}
-              </button>
-            ))}
-          </div>
+          {!showSpecialForms && (
+            <div className="gen-buttons">
+              {generations.map((gen) => (
+                <button
+                  key={gen.name}
+                  className={`gen-button ${selectedGen.name === gen.name ? 'active' : ''}`}
+                  onClick={() => handleGenSelect(gen)}
+                >
+                  {gen.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </nav>

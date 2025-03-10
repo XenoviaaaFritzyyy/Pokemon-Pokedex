@@ -10,6 +10,15 @@ export interface Pokemon {
         front_shiny: string;
       };
     };
+    versions?: {
+      'generation-v'?: {
+        'black-white'?: {
+          animated?: {
+            front_default: string;
+          };
+        };
+      };
+    };
   };
   types: {
     type: {

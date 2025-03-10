@@ -50,6 +50,13 @@ const PokemonDetail = ({
   getUniqueVersions,
   calculateTypeWeaknesses
 }: PokemonDetailProps) => {
+  // Check if the Pokemon name contains any special form indicators
+  const isSpecialForm = pokemon.name.includes('-mega') || 
+                       pokemon.name.includes('-gmax') || 
+                       pokemon.name.includes('-alola') || 
+                       pokemon.name.includes('-galar') || 
+                       pokemon.name.includes('-hisui');
+
   return (
     <div className="pokemon-detail-overlay" onClick={closeDetails}>
       <div className="pokemon-detail-modal" onClick={e => e.stopPropagation()}>
@@ -174,10 +181,15 @@ const PokemonDetail = ({
 
           <PokemonStats pokemon={pokemon} />
           <PokemonAbilities pokemon={pokemon} abilityDetails={abilityDetails} />
-          <PokemonEvolutions 
-            evolutionChain={evolutionChain} 
-            fetchPokemonDetails={fetchPokemonDetails} 
-          />
+
+          {/* Only show evolution chain for regular Pokemon */}
+          {!isSpecialForm && (
+            <PokemonEvolutions 
+              evolutionChain={evolutionChain} 
+              fetchPokemonDetails={fetchPokemonDetails} 
+            />
+          )}
+
           <PokemonMoves pokemon={pokemon} moveDetails={moveDetails} />
           <TCGCards cards={tcgCards} loading={loadingCards} />
         </div>

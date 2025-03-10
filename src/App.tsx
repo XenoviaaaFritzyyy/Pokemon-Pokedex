@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import PokemonGrid from './components/PokemonGrid'
 import PokemonDetail from './components/PokemonDetail'
 import { Pokemon, Generation, PokemonDetails, PokemonSpecies, EvolutionChain, PokemonForm, AbilityDetail, MoveDetail, TCGCard } from './types'
+import SpecialForms from './components/SpecialForms'
 
 interface TypeEffectiveness {
   [key: string]: {
@@ -144,6 +145,7 @@ function App() {
   const [tcgCards, setTcgCards] = useState<TCGCard[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
   const [is3D, setIs3D] = useState(false);
+  const [showSpecialForms, setShowSpecialForms] = useState(false);
 
   const pokemonTypes = [
     'all', 'normal', 'fire', 'water', 'electric', 'grass', 'ice',
@@ -499,6 +501,8 @@ function App() {
         handleGenSelect={handleGenSelect}
         pokemonTypes={pokemonTypes}
         generations={generations}
+        showSpecialForms={showSpecialForms}
+        setShowSpecialForms={setShowSpecialForms}
       />
 
       {showWarning && (
@@ -532,12 +536,21 @@ function App() {
           <div className="loading">Loading {selectedGen.name} Pokémon...</div>
         ) : (
           <>
-            <PokemonGrid
-              pokemon={filteredPokemon}
-              is3D={is3D}
-              isShiny={isShiny}
-              handlePokemonClick={handlePokemonClick}
-            />
+            {showSpecialForms ? (
+              <SpecialForms 
+                is3D={is3D} 
+                handlePokemonClick={handlePokemonClick}
+                searchTerm={searchTerm}
+                selectedType={selectedType}
+                selectedSecondType={selectedSecondType}
+              />
+            ) : (
+              <PokemonGrid
+                pokemon={filteredPokemon}
+                is3D={is3D}
+                handlePokemonClick={handlePokemonClick}
+              />
+            )}
 
             {selectedPokemon && pokemonSpecies && (
               <PokemonDetail
