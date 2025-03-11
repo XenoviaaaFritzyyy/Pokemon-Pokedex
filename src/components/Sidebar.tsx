@@ -8,7 +8,7 @@ interface SidebarProps {
   setActiveSection: (section: string) => void;
 }
 
-const Sidebar = ({ isOpen, setIsOpen, activeSection, setActiveSection }: SidebarProps) => {
+const Sidebar = ({ isOpen, setIsOpen, setActiveSection }: SidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
 

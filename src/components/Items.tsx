@@ -26,11 +26,6 @@ const Items = () => {
     const fetchItems = async () => {
       try {
         setLoading(true);
-        // First, fetch the categories
-        const categoriesResponse = await fetch('https://pokeapi.co/api/v2/item-category');
-        const categoriesData = await categoriesResponse.json();
-        const fetchedCategories = categoriesData.results.map((cat: any) => cat.name);
-        
         // Add all categories including special ones
         const allCategories = [
           'all',
