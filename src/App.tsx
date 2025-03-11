@@ -5,6 +5,10 @@ import PokemonGrid from './components/PokemonGrid'
 import PokemonDetail from './components/PokemonDetail'
 import { Pokemon, Generation, PokemonDetails, PokemonSpecies, EvolutionChain, PokemonForm, AbilityDetail, MoveDetail, TCGCard } from './types'
 import SpecialForms from './components/SpecialForms'
+import Sidebar from './components/Sidebar'
+import GameMaps from './components/GameMaps'
+import Items from './components/Items'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
 interface TypeEffectiveness {
   [key: string]: {
@@ -146,6 +150,8 @@ function App() {
   const [loadingCards, setLoadingCards] = useState(false);
   const [is3D, setIs3D] = useState(false);
   const [showSpecialForms, setShowSpecialForms] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('pokedex');
 
   const pokemonTypes = [
     'all', 'normal', 'fire', 'water', 'electric', 'grass', 'ice',
@@ -487,104 +493,120 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <Navbar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        is3D={is3D}
-        setIs3D={setIs3D}
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        selectedSecondType={selectedSecondType}
-        setSelectedSecondType={setSelectedSecondType}
-        selectedGen={selectedGen}
-        handleGenSelect={handleGenSelect}
-        pokemonTypes={pokemonTypes}
-        generations={generations}
-        showSpecialForms={showSpecialForms}
-        setShowSpecialForms={setShowSpecialForms}
-      />
+    <Router>
+      <div className="app-container">
+        <Navbar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          is3D={is3D}
+          setIs3D={setIs3D}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          selectedSecondType={selectedSecondType}
+          setSelectedSecondType={setSelectedSecondType}
+          selectedGen={selectedGen}
+          handleGenSelect={handleGenSelect}
+          pokemonTypes={pokemonTypes}
+          generations={generations}
+          showSpecialForms={showSpecialForms}
+          setShowSpecialForms={setShowSpecialForms}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
 
-      {showWarning && (
-        <div className="warning-modal">
-          <div className="warning-content">
-            <h3>Load All Pokémon?</h3>
-            <p>Loading all generations (1010+ Pokémon) may take longer to load and could affect performance.</p>
-            <div className="warning-buttons">
-              <button 
-                className="warning-button confirm"
-                onClick={() => {
-                  setSelectedGen(generations[0]);
-                  setShowWarning(false);
-                }}
-              >
-                Continue
-              </button>
-              <button 
-                className="warning-button cancel"
-                onClick={() => setShowWarning(false)}
-              >
-                Cancel
-              </button>
+        <Sidebar 
+          isOpen={isSidebarOpen}
+          setIsOpen={setIsSidebarOpen}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+
+        {showWarning && (
+          <div className="warning-modal">
+            <div className="warning-content">
+              <h3>Load All Pokémon?</h3>
+              <p>Loading all generations (1010+ Pokémon) may take longer to load and could affect performance.</p>
+              <div className="warning-buttons">
+                <button 
+                  className="warning-button confirm"
+                  onClick={() => {
+                    setSelectedGen(generations[0]);
+                    setShowWarning(false);
+                  }}
+                >
+                  Continue
+                </button>
+                <button 
+                  className="warning-button cancel"
+                  onClick={() => setShowWarning(false)}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      <main className="pokedex-container">
-        {loading ? (
-          <div className="loading">Loading {selectedGen.name} Pokémon...</div>
-        ) : (
-          <>
-            {showSpecialForms ? (
-              <SpecialForms 
-                is3D={is3D} 
-                handlePokemonClick={handlePokemonClick}
-                searchTerm={searchTerm}
-                selectedType={selectedType}
-                selectedSecondType={selectedSecondType}
-              />
-            ) : (
-              <PokemonGrid
-                pokemon={filteredPokemon}
-                is3D={is3D}
-                handlePokemonClick={handlePokemonClick}
-              />
-            )}
-
-            {selectedPokemon && pokemonSpecies && (
-              <PokemonDetail
-                pokemon={selectedPokemon}
-                species={pokemonSpecies}
-                evolutionChain={evolutionChain}
-                isShiny={isShiny}
-                is3D={is3D}
-                selectedForm={selectedForm}
-                pokemonForms={pokemonForms}
-                abilityDetails={abilityDetails}
-                moveDetails={moveDetails}
-                tcgCards={tcgCards}
-                loadingCards={loadingCards}
-                selectedVersion={selectedVersion}
-                setSelectedVersion={setSelectedVersion}
-                setIsShiny={setIsShiny}
-                closeDetails={closeDetails}
-                fetchPokemonDetails={fetchPokemonDetails}
-                getUniqueVersions={getUniqueVersions}
-                calculateTypeWeaknesses={calculateTypeWeaknesses}
-              />
-            )}
-          </>
         )}
-      </main>
 
-      <footer className="footer">
-        <div className="footer-content">
-          <p>Data provided by <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> and <a href="https://pokemontcg.io/" target="_blank" rel="noopener noreferrer">Pokémon TCG API</a></p>
-          <p>© 2024 Pokédex App - All Rights Reserved</p>
-        </div>
-      </footer>
-    </div>
+        <main className="pokedex-container">
+          <Routes>
+            <Route path="/" element={
+              loading ? (
+                <div className="loading">Loading {selectedGen.name} Pokémon...</div>
+              ) : (
+                <>
+                  {showSpecialForms ? (
+                    <SpecialForms 
+                      is3D={is3D} 
+                      handlePokemonClick={handlePokemonClick}
+                      searchTerm={searchTerm}
+                      selectedType={selectedType}
+                      selectedSecondType={selectedSecondType}
+                    />
+                  ) : (
+                    <PokemonGrid
+                      pokemon={filteredPokemon}
+                      is3D={is3D}
+                      handlePokemonClick={handlePokemonClick}
+                    />
+                  )}
+
+                  {selectedPokemon && pokemonSpecies && (
+                    <PokemonDetail
+                      pokemon={selectedPokemon}
+                      species={pokemonSpecies}
+                      evolutionChain={evolutionChain}
+                      isShiny={isShiny}
+                      is3D={is3D}
+                      selectedForm={selectedForm}
+                      pokemonForms={pokemonForms}
+                      abilityDetails={abilityDetails}
+                      moveDetails={moveDetails}
+                      tcgCards={tcgCards}
+                      loadingCards={loadingCards}
+                      selectedVersion={selectedVersion}
+                      setSelectedVersion={setSelectedVersion}
+                      setIsShiny={setIsShiny}
+                      closeDetails={closeDetails}
+                      fetchPokemonDetails={fetchPokemonDetails}
+                      getUniqueVersions={getUniqueVersions}
+                      calculateTypeWeaknesses={calculateTypeWeaknesses}
+                    />
+                  )}
+                </>
+              )
+            } />
+            <Route path="/games-maps" element={<GameMaps />} />
+            <Route path="/items" element={<Items />} />
+          </Routes>
+        </main>
+
+        <footer className="footer">
+          <div className="footer-content">
+            <p>Data provided by <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> and <a href="https://pokemontcg.io/" target="_blank" rel="noopener noreferrer">Pokémon TCG API</a></p>
+            <p>© 2024 Pokédex App - All Rights Reserved</p>
+          </div>
+        </footer>
+      </div>
+    </Router>
   );
 }
 
