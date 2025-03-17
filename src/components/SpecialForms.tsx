@@ -1,25 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Pokemon } from '../types';
-
-interface SpecialForm extends Omit<Pokemon, 'id'> {
-  name: string;
-  sprites: {
-    front_default: string;
-    front_shiny?: string;
-    other?: {
-      home?: {
-        front_default: string;
-      };
-    };
-  };
-  types: {
-    type: {
-      name: string;
-    };
-  }[];
-  height: number;
-  weight: number;
-}
+import { Pokemon, SpecialForm } from '../types';
 
 interface SpecialFormsProps {
   is3D: boolean;
@@ -36,7 +16,6 @@ const SpecialForms = ({
   searchTerm,
   selectedType,
   selectedSecondType,
-  sortOrder
 }: SpecialFormsProps) => {
   const [specialForms, setSpecialForms] = useState<SpecialForm[]>([]);
   const [loading, setLoading] = useState(true);

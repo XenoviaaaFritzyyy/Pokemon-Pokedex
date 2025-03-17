@@ -164,4 +164,30 @@ export interface TCGCard {
     name: string;
     series: string;
   };
+}
+
+export interface SpecialForm extends Omit<Pokemon, 'id' | 'sprites'> {
+  id: string;
+  sprites: {
+    front_default: string | undefined;
+    front_shiny: string | undefined;
+    other?: {
+      home?: {
+        front_default: string | undefined;
+        front_shiny: string | undefined;
+      };
+    };
+    versions?: {
+      'generation-v'?: {
+        'black-white'?: {
+          animated?: {
+            front_default: string | undefined;
+          };
+        };
+      };
+    };
+  };
+  form_name: string;
+  is_default: boolean;
+  order: number;
 } 
