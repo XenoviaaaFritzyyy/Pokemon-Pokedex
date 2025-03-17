@@ -8,7 +8,7 @@ import SpecialForms from './components/SpecialForms'
 import Sidebar from './components/Sidebar'
 import GameMaps from './components/GameMaps'
 import Items from './components/Items'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 
 interface TypeEffectiveness {
   [key: string]: {
@@ -152,6 +152,7 @@ function App() {
   const [showSpecialForms, setShowSpecialForms] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('pokedex');
+  const [sortOrder, setSortOrder] = useState('dex-number');
 
   const pokemonTypes = [
     'all', 'normal', 'fire', 'water', 'electric', 'grass', 'ice',
@@ -511,6 +512,8 @@ function App() {
           showSpecialForms={showSpecialForms}
           setShowSpecialForms={setShowSpecialForms}
           setIsSidebarOpen={setIsSidebarOpen}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
         />
 
         <Sidebar 
@@ -560,12 +563,14 @@ function App() {
                       searchTerm={searchTerm}
                       selectedType={selectedType}
                       selectedSecondType={selectedSecondType}
+                      sortOrder={sortOrder}
                     />
                   ) : (
                     <PokemonGrid
                       pokemon={filteredPokemon}
                       is3D={is3D}
                       handlePokemonClick={handlePokemonClick}
+                      sortOrder={sortOrder}
                     />
                   )}
 
@@ -596,6 +601,7 @@ function App() {
             } />
             <Route path="/games-maps" element={<GameMaps />} />
             <Route path="/items" element={<Items />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 

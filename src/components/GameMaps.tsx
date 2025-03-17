@@ -66,7 +66,10 @@ const GameMaps = () => {
             try {
               const areaResponse = await fetch(area.url);
               const areaData = await areaResponse.json();
-              return areaData.pokemon_encounters;
+              return areaData.pokemon_encounters.map((encounter: any) => ({
+                ...encounter,
+                condition_values: encounter.version_details?.[0]?.encounter_details?.[0]?.condition_values || []
+              }));
             } catch (error) {
               console.error(`Error fetching area data: ${error}`);
               return [];
@@ -82,12 +85,17 @@ const GameMaps = () => {
               const encounter = flattenedEncounters.find((e: any) => e?.pokemon?.name === name);
               if (!encounter?.pokemon?.url) return null;
               
+              // Check for time-based conditions
+              const conditions = encounter.condition_values || [];
+              const isNightOnly = conditions.some((condition: any) => condition.name === 'time-night');
+              const isDayOnly = conditions.some((condition: any) => condition.name === 'time-day');
+              
               return {
                 name,
                 sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${encounter.pokemon.url.split('/')[6]}.png`,
                 catchRate: {
-                  day: encounter.time_of_day?.includes('day') || !encounter.time_of_day,
-                  night: encounter.time_of_day?.includes('night')
+                  day: isDayOnly || (!isNightOnly && !isDayOnly),
+                  night: isNightOnly || (!isNightOnly && !isDayOnly)
                 }
               };
             })

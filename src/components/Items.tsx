@@ -21,12 +21,21 @@ const Items = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [visibleItems, setVisibleItems] = useState(ITEMS_PER_ROW * INITIAL_ROWS);
   const [categories, setCategories] = useState<string[]>([]);
+  const [currentFetch, setCurrentFetch] = useState<AbortController | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
+      if (currentFetch) {
+        currentFetch.abort();
+      }
+
+      const abortController = new AbortController();
+      setCurrentFetch(abortController);
+
       try {
         setLoading(true);
-        // Add all categories including special ones
+        setItems([]);
+
         const allCategories = [
           'all',
           'standard-balls',
@@ -77,46 +86,90 @@ const Items = () => {
         
         setCategories(allCategories);
 
-        // Then fetch items for the selected category
-        let itemsUrl = 'https://pokeapi.co/api/v2/item-category/' + selectedCategory;
+        let items = [];
         if (selectedCategory === 'all') {
-          itemsUrl = 'https://pokeapi.co/api/v2/item?limit=20'; // Limit initial load for 'all'
+          const response = await fetch('https://pokeapi.co/api/v2/item?limit=2000', {
+            signal: abortController.signal
+          });
+          const data = await response.json();
+          const itemUrls = data.results.map((item: any) => item.url);
+          
+          const batchSize = 50;
+          const batches = [];
+          for (let i = 0; i < itemUrls.length; i += batchSize) {
+            const batch = itemUrls.slice(i, i + batchSize);
+            batches.push(batch);
+          }
+
+          for (const batch of batches) {
+            if (abortController.signal.aborted) {
+              throw new Error('Fetch aborted');
+            }
+
+            const batchResults = await Promise.all(
+              batch.map(async (url: string) => {
+                const itemResponse = await fetch(url, {
+                  signal: abortController.signal
+                });
+                return itemResponse.json();
+              })
+            );
+            items.push(...batchResults);
+          }
+        } else {
+          const response = await fetch(`https://pokeapi.co/api/v2/item-category/${selectedCategory}`, {
+            signal: abortController.signal
+          });
+          const data = await response.json();
+          
+          items = await Promise.all(
+            data.items.map(async (item: any) => {
+              const itemResponse = await fetch(item.url, {
+                signal: abortController.signal
+              });
+              return itemResponse.json();
+            })
+          );
         }
 
-        const response = await fetch(itemsUrl);
-        const data = await response.json();
-        
-        const itemUrls = selectedCategory === 'all' 
-          ? data.results.map((item: any) => item.url)
-          : data.items.map((item: any) => item.url);
+        if (!abortController.signal.aborted) {
+          const processedItems = items
+            .filter(item => item && item.sprites && item.sprites.default)
+            .map(item => ({
+              id: item.id,
+              name: item.name.replace(/-/g, ' '),
+              sprite: item.sprites.default,
+              category: item.category?.name || 'unknown',
+              effect: item.effect_entries.find((entry: any) => entry.language.name === 'en')?.effect || 'No effect description available',
+              cost: item.cost,
+              attributes: item.attributes?.map((attr: any) => attr.name) || []
+            }));
 
-        const itemDetails = await Promise.all(
-          itemUrls.map(async (url: string) => {
-            const itemResponse = await fetch(url);
-            return itemResponse.json();
-          })
-        );
-
-        const processedItems = itemDetails.map(item => ({
-          id: item.id,
-          name: item.name.replace(/-/g, ' '),
-          sprite: item.sprites.default,
-          category: item.category.name,
-          effect: item.effect_entries.find((entry: any) => entry.language.name === 'en')?.effect || 'No effect description available',
-          cost: item.cost,
-          attributes: item.attributes.map((attr: any) => attr.name)
-        }));
-
-        setItems(processedItems);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching items:', error);
-        setLoading(false);
+          setItems(processedItems);
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            console.log('Fetch aborted');
+          } else {
+            console.error('Error fetching items:', error);
+          }
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchItems();
-  }, [selectedCategory]); // Only re-fetch when category changes
+
+    return () => {
+      if (currentFetch) {
+        currentFetch.abort();
+      }
+    };
+  }, [selectedCategory]);
 
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -127,7 +180,8 @@ const Items = () => {
       setShowWarning(true);
     } else {
       setSelectedCategory(category);
-      setVisibleItems(ITEMS_PER_ROW * INITIAL_ROWS); // Reset visible items when changing category
+      setVisibleItems(ITEMS_PER_ROW * INITIAL_ROWS);
+      setSearchTerm('');
     }
   };
 
@@ -145,25 +199,27 @@ const Items = () => {
 
   return (
     <div className="items-container">
-      <div className="items-filters">
-        <input
-          type="text"
-          placeholder="Search items..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="item-search"
-        />
-        <select
-          value={selectedCategory}
-          onChange={(e) => handleCategoryChange(e.target.value)}
-          className="category-filter"
-        >
-          {categories.map(category => (
-            <option key={category} value={category}>
-              {formatCategoryName(category)}
-            </option>
-          ))}
-        </select>
+      <div className="search-container">
+        <div className="search-filters">
+          <input
+            type="text"
+            placeholder="Search items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          <select
+            value={selectedCategory}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            className="sort-filter"
+          >
+            {categories.map(category => (
+              <option key={category} value={category}>
+                {formatCategoryName(category)}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {showWarning && (

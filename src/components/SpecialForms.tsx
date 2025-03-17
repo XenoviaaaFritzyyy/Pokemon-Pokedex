@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Pokemon } from '../types';
 
-interface SpecialForm {
+interface SpecialForm extends Omit<Pokemon, 'id'> {
   name: string;
   sprites: {
     front_default: string;
@@ -16,14 +17,17 @@ interface SpecialForm {
       name: string;
     };
   }[];
+  height: number;
+  weight: number;
 }
 
 interface SpecialFormsProps {
   is3D: boolean;
-  handlePokemonClick: (pokemon: any) => void;
+  handlePokemonClick: (pokemon: Pokemon) => void;
   searchTerm: string;
   selectedType: string;
   selectedSecondType: string;
+  sortOrder: string;
 }
 
 const SpecialForms = ({ 
@@ -31,7 +35,8 @@ const SpecialForms = ({
   handlePokemonClick, 
   searchTerm,
   selectedType,
-  selectedSecondType 
+  selectedSecondType,
+  sortOrder
 }: SpecialFormsProps) => {
   const [specialForms, setSpecialForms] = useState<SpecialForm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,7 +147,10 @@ const SpecialForms = ({
         <div 
           key={index} 
           className="special-form-card"
-          onClick={() => handlePokemonClick(form)}
+          onClick={() => handlePokemonClick({
+            ...form,
+            id: parseInt(form.name.split('-')[0]) // Extract base Pokemon's ID
+          } as Pokemon)}
         >
           <img 
             src={
