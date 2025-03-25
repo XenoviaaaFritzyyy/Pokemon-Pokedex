@@ -19,7 +19,7 @@ interface TypeEffectiveness {
 }
 
 const generations: Generation[] = [
-  { name: "All Gens", start: 1, end: 1010 },
+  { name: "All Gens", start: 1, end: 1025 },
   { name: "Gen 1", start: 1, end: 151 },
   { name: "Gen 2", start: 152, end: 251 },
   { name: "Gen 3", start: 252, end: 386 },
@@ -28,7 +28,7 @@ const generations: Generation[] = [
   { name: "Gen 6", start: 650, end: 721 },
   { name: "Gen 7", start: 722, end: 809 },
   { name: "Gen 8", start: 810, end: 905 },
-  { name: "Gen 9", start: 906, end: 1010 },
+  { name: "Gen 9", start: 906, end: 1025 },
 ];
 
 const typeEffectiveness: TypeEffectiveness = {
@@ -608,7 +608,7 @@ function App() {
         <footer className="footer">
           <div className="footer-content">
             <p>Data provided by <a href="https://pokeapi.co/" target="_blank" rel="noopener noreferrer">PokéAPI</a> and <a href="https://pokemontcg.io/" target="_blank" rel="noopener noreferrer">Pokémon TCG API</a></p>
-            <p>© 2024 Pokédex App - All Rights Reserved</p>
+            <p> 2024 Pokédex App - All Rights Reserved</p>
           </div>
         </footer>
       </div>
